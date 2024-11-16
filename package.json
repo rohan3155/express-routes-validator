@@ -1,9 +1,10 @@
 {
   "name": "express-routes-validator",
-  "version": "1.0.4",
+  "version": "1.0.3",
   "description": "A package for request validation middleware and validators",
   "main": "dist/cjs/index.js",
-  "types": "dist/esm/index.d.ts",
+  "module": "dist/esm/index.js",
+  "types": "dist/index.d.ts",
   "exports": {
     ".": {
       "import": "./dist/esm/index.js",
@@ -11,8 +12,10 @@
     }
   },
   "scripts": {
-    "build": "tsc -p tsconfig.json",
-    "start": "node dist/index.js",
+    "build:cjs": "tsc -p tsconfig.commonjs.json",
+    "build:esm": "tsc -p tsconfig.esm.json",
+    "build": "npm run build:cjs && npm run build:esm",
+    "start": "node dist/cjs/index.js",
     "test": "echo \"No tests specified\" && exit 0"
   },
   "keywords": [
