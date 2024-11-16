@@ -1,5 +1,3 @@
-// middleware.ts
-
 import { Request, Response, NextFunction } from "express";
 import { Validator } from "./validators";
 
@@ -31,9 +29,15 @@ export const validateRequest: MiddlewareFunction = (
     // Iterate over the schema and validate each field
     for (const key in schema) {
       if (Object.prototype.hasOwnProperty.call(schema, key)) {
-        const validators = Array.isArray(schema[key])
-          ? schema[key]
-          : [schema[key]]; // Support for both single and multiple validators
+        let validators: Validator[] = [];
+
+        if (Array.isArray(schema[key])) {
+          // If it's already an array, flatten the array of validators
+          validators = (schema[key] as Validator[]).flat() as Validator[];
+        } else {
+          // If it's a single validator, wrap it in an array
+          validators = [schema[key] as Validator];
+        }
 
         for (const validator of validators) {
           const error = validator(targetData[key], key); // Run the validator
