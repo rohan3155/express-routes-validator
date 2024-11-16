@@ -27,7 +27,7 @@
   },
   "repository": {
     "type": "git",
-    "url": "https://github.com/your-repo/your-package-name.git"
+    "url": "https://github.com/rohan3155/express-routes-validator.git"
   },
   "type": "module"
 }
