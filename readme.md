@@ -394,7 +394,7 @@ Here’s a simple example of how to use these validators:
 
 ```js
 import express from "express";
-import { validator } from "express-routes-validator";
+import { validateRequest } from "express-routes-validator";
 
 const app = express();
 
@@ -411,7 +411,7 @@ const options = {
   },
 };
 
-app.use(validator(options));
+app.use(validateRequest(options));
 
 app.post("/register", (req, res) => {
   res.send("Registered successfully!");
