@@ -1,5 +1,5 @@
 import { Request, Response, NextFunction } from "express";
-import { Validator } from "./validators";
+import { Validator } from "./validators"; // Assuming you have validators like isRequired, isEmail, etc.
 
 export interface MiddlewareOptions {
   target?: "body" | "query" | "params"; // Optional target, defaults to body
@@ -10,52 +10,51 @@ export type MiddlewareFunction = (
   options?: MiddlewareOptions
 ) => (req: Request, res: Response, next: NextFunction) => void;
 
-export const validateRequest: MiddlewareFunction = (
-  schema,
-  options: MiddlewareOptions = { target: "body" } // Set default target as "body"
-) => {
+type ValidationSchema = {
+  [key: string]: { [field: string]: Validator | Validator[] };
+};
+
+export const validateRequest = (options: ValidationSchema) => {
   return (req: Request, res: Response, next: NextFunction) => {
-    // Ensure options.target is valid
-    const target = options.target ?? "body";
-    if (!["body", "query", "params"].includes(target)) {
-      return res
-        .status(400)
-        .json({ errors: { target: "Invalid target specified" } });
-    }
+    const route = req.originalUrl; // Get the current route
 
-    const targetData = req[target]; // Get the data from the specified target (body, query, params)
-    const errors: { [key: string]: string } = {}; // Initialize errors object
+    if (options[route]) {
+      const target = req.body; // By default, we will validate the body of the request
+      const errors: { [key: string]: string } = {};
 
-    // Iterate over the schema and validate each field
-    for (const key in schema) {
-      if (Object.prototype.hasOwnProperty.call(schema, key)) {
-        let validators: Validator[] = [];
+      // Get the schema for the current route
+      const schema = options[route];
 
-        if (Array.isArray(schema[key])) {
-          // If it's already an array, flatten the array of validators
-          validators = (schema[key] as Validator[]).flat() as Validator[];
-        } else {
-          // If it's a single validator, wrap it in an array
-          validators = [schema[key] as Validator];
-        }
+      for (const field in schema) {
+        if (Object.prototype.hasOwnProperty.call(schema, field)) {
+          let validators: Validator[] = [];
 
-        for (const validator of validators) {
-          const error = validator(targetData[key], key); // Run the validator
+          // Handle both single validators and arrays of validators
+          if (Array.isArray(schema[field])) {
+            validators = schema[field] as Validator[];
+          } else {
+            validators = [schema[field] as Validator];
+          }
 
-          if (error) {
-            errors[key] = error; // If there's an error, store it and stop further checks for this key
-            break;
+          // Iterate through each validator
+          for (const validator of validators) {
+            const error = validator(target[field], field); // Call validator with the field value and field name
+
+            if (error) {
+              errors[field] = error; // Store the error for the field
+              break; // Stop validation for this field if error is found
+            }
           }
         }
       }
+
+      // If there are any validation errors, return them
+      if (Object.keys(errors).length > 0) {
+        return res.status(400).json({ errors });
+      }
     }
 
-    // If there are any errors, return a 400 response with the errors
-    if (Object.keys(errors).length > 0) {
-      return res.status(400).json({ errors });
-    }
-
-    // If validation passes, proceed to the next middleware
+    // If there are no errors, continue with the next middleware
     next();
   };
 };
