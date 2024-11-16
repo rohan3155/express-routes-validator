@@ -16,22 +16,18 @@ type ValidationSchema = {
 
 export const validateRequest = (options: ValidationSchema) => {
   return (req: Request, res: Response, next: NextFunction) => {
-    // Get the current route path
     const route = req.route.path; // This gives you the path from the express router
 
-    // Find a matching schema for the route
+    // Iterate over the options to match the route
     for (const routePattern in options) {
-      // Match dynamic parameters with regex
-      const regex = new RegExp(`^${routePattern.replace(/:\w+/g, "\\w+")}$`);
+      const regex = new RegExp(`^${routePattern.replace(/:\w+/g, "\\w+")}$`); // Create regex for dynamic routes
       if (regex.test(route)) {
         const schema = options[routePattern];
-        const targetData = req.body; // Default target is `body`
         const errors: { [key: string]: string } = {};
 
-        // If route has params, check req.params for validation
-        const target = req.params || targetData;
-
-        // Iterate over each field in the schema and validate it
+        // Validate params, query, or body based on schema
+        // Check for params first (for dynamic parts like :id)
+        const targetData = { ...req.params, ...req.body }; // Combine params and body into one object
         for (const field in schema) {
           if (Object.prototype.hasOwnProperty.call(schema, field)) {
             let validators: Validator[] = [];
@@ -44,10 +40,10 @@ export const validateRequest = (options: ValidationSchema) => {
 
             // Iterate through each validator
             for (const validator of validators) {
-              const error = validator(target[field], field);
+              const error = validator(targetData[field], field); // Validate field
 
               if (error) {
-                errors[field] = error;
+                errors[field] = error; // Collect errors
                 break; // Stop further checks if error found for this field
               }
             }
@@ -58,8 +54,6 @@ export const validateRequest = (options: ValidationSchema) => {
         if (Object.keys(errors).length > 0) {
           return res.status(400).json({ errors });
         }
-
-        break; // Exit loop if a matching route is found
       }
     }
 
