@@ -393,7 +393,7 @@ capitalizeString(value, key);
 Here’s a simple example of how to use these validators:
 
 ```js
-const { isString, isEmail, isRequired } = require("your-package-name");
+const { isString, isEmail, isRequired } = require("express-routes-validator");
 
 const schema = {
   email: [isRequired, isEmail],
