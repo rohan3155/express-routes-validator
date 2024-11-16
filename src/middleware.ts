@@ -16,18 +16,25 @@ type ValidationSchema = {
 
 export const validateRequest = (options: ValidationSchema) => {
   return (req: Request, res: Response, next: NextFunction) => {
-    const route = req.route.path; // This gives you the path from the express router
+    const route = req.originalUrl; // This gives you the full URL path, including parameters
 
     // Iterate over the options to match the route
     for (const routePattern in options) {
-      const regex = new RegExp(`^${routePattern.replace(/:\w+/g, "\\w+")}$`); // Create regex for dynamic routes
+      // Create regex for dynamic routes, replacing :param with a regex for matching dynamic values
+      const regex = new RegExp(`^${routePattern.replace(/:\w+/g, "(\\w+)")}$`);
+
       if (regex.test(route)) {
         const schema = options[routePattern];
         const errors: { [key: string]: string } = {};
 
-        // Validate params, query, or body based on schema
-        // Check for params first (for dynamic parts like :id)
-        const targetData = { ...req.params, ...req.body }; // Combine params and body into one object
+        // Handle validation for params, query, or body depending on the schema
+        const targetData: { [key: string]: any } = {
+          ...req.params,
+          ...req.body,
+          ...req.query, // Include query params if needed
+        };
+
+        // Iterate through fields in the schema
         for (const field in schema) {
           if (Object.prototype.hasOwnProperty.call(schema, field)) {
             let validators: Validator[] = [];
@@ -38,7 +45,7 @@ export const validateRequest = (options: ValidationSchema) => {
               validators = [schema[field] as Validator];
             }
 
-            // Iterate through each validator
+            // Run each validator for the field
             for (const validator of validators) {
               const error = validator(targetData[field], field); // Validate field
 
@@ -50,14 +57,14 @@ export const validateRequest = (options: ValidationSchema) => {
           }
         }
 
-        // If there are any validation errors, return a 400 response with the errors
+        // If there are validation errors, return a 400 response with errors
         if (Object.keys(errors).length > 0) {
           return res.status(400).json({ errors });
         }
       }
     }
 
-    // If no validation errors, move to the next middleware
+    // If no validation errors, proceed to the next middleware
     next();
   };
 };
