@@ -1,69 +1,65 @@
 import { Request, Response, NextFunction } from "express";
-import { Validator } from "./validators"; // Assuming you have validators like isRequired, isEmail, etc.
+import { Validator } from "./validators"; // Import your validators
 
-export interface MiddlewareOptions {
-  target?: "body" | "query" | "params"; // Optional target, defaults to body
-}
-
-export type MiddlewareFunction = (
-  schema: { [key: string]: Validator | Validator[] },
-  options?: MiddlewareOptions
-) => (req: Request, res: Response, next: NextFunction) => void;
-
-type ValidationSchema = {
-  [routePattern: string]: { [field: string]: Validator | Validator[] };
+// Validator Schema for fields
+type RouteSchema = {
+  [field: string]: Validator | Validator[];
 };
 
-export const validateRequest = (options: ValidationSchema) => {
-  return (req: Request, res: Response, next: NextFunction) => {
-    // Get the current route path
-    const route = req.route.path; // This gives you the path from the express router
+// Schema with optional _target property (for body, query, or params)
+interface SchemaWithTarget {
+  schema: RouteSchema; // The schema for route fields
+  _target?: "body" | "query" | "params"; // Optional target for where to validate (body, query, or params)
+}
 
-    // Find a matching schema for the route
+// Main validation function
+export const validateRequest = (options: {
+  [routePattern: string]: SchemaWithTarget;
+}) => {
+  return (req: Request, res: Response, next: NextFunction) => {
+    const route = req.route?.path || req.path; // Use req.path if req.route is not defined
+
+    // Loop through options and check for matching routes
     for (const routePattern in options) {
-      // Match dynamic parameters with regex
       const regex = new RegExp(`^${routePattern.replace(/:\w+/g, "\\w+")}$`);
       if (regex.test(route)) {
-        const schema = options[routePattern];
-        const targetData = req.body; // Default target is `body`
+        const { schema, _target } = options[routePattern];
+        let targetData: any = req.body; // Default target is body
+
+        // Set target data based on _target
+        if (_target === "params") targetData = req.params;
+        else if (_target === "query") targetData = req.query;
+
         const errors: { [key: string]: string } = {};
 
-        // If route has params, check req.params for validation
-        const target = req.params || targetData;
-
-        // Iterate over each field in the schema and validate it
+        // Validate fields using the schema
         for (const field in schema) {
+          if (field === "_target") continue; // Skip the _target property
           if (Object.prototype.hasOwnProperty.call(schema, field)) {
-            let validators: Validator[] = [];
+            const validators = Array.isArray(schema[field])
+              ? (schema[field] as Validator[])
+              : [schema[field] as Validator];
 
-            if (Array.isArray(schema[field])) {
-              validators = schema[field] as Validator[];
-            } else {
-              validators = [schema[field] as Validator];
-            }
-
-            // Iterate through each validator
             for (const validator of validators) {
-              const error = validator(target[field], field);
-
+              const error = validator(targetData[field], field);
               if (error) {
                 errors[field] = error;
-                break; // Stop further checks if error found for this field
+                break; // Stop further checks if an error is found for this field
               }
             }
           }
         }
 
-        // If there are any validation errors, return a 400 response with the errors
+        // If there are validation errors, return a 400 response
         if (Object.keys(errors).length > 0) {
           return res.status(400).json({ errors });
         }
 
-        break; // Exit loop if a matching route is found
+        break; // Exit loop when matching route is found
       }
     }
 
-    // If no validation errors, move to the next middleware
+    // If no errors, proceed to next middleware
     next();
   };
 };
