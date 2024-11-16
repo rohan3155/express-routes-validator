@@ -1,6 +1,6 @@
 {
   "name": "express-routes-validator",
-  "version": "1.0.2",
+  "version": "1.0.3",
   "description": "A package for request validation middleware and validators",
   "main": "dist/index.js",
   "types": "dist/index.d.ts",
