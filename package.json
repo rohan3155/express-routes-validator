@@ -1,6 +1,6 @@
 {
   "name": "express-routes-validator",
-  "version": "1.1.1",
+  "version": "1.0.9",
   "description": "A package for request validation middleware and validators",
   "main": "dist/esm/index.js",
   "module": "dist/esm/index.js",
