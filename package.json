@@ -2,34 +2,19 @@
   "name": "express-routes-validator",
   "version": "1.0.6",
   "description": "A package for request validation middleware and validators",
-  "main": "dist/cjs/index.js",
+  "main": "dist/esm/index.js",
   "module": "dist/esm/index.js",
   "types": "dist/index.d.ts",
   "exports": {
-    ".": {
-      "import": "./dist/esm/index.js",
-      "require": "./dist/cjs/index.js"
-    },
-    "./validators": {
-      "import": "./dist/esm/validators.js",
-      "require": "./dist/cjs/validators.js"
-    }
+    ".": "./dist/esm/index.js",
+    "./validators": "./dist/esm/validators.js"
   },
   "scripts": {
-    "build:cjs": "tsc -p tsconfig.commonjs.json",
+    "build": "npm run build:esm",
     "build:esm": "tsc -p tsconfig.esm.json",
-    "build": "npm run build:cjs && npm run build:esm",
-    "start": "node dist/cjs/index.js",
+    "start": "node dist/esm/index.js",
     "test": "echo \"No tests specified\" && exit 0"
   },
-  "keywords": [
-    "express",
-    "validation",
-    "middleware",
-    "typescript"
-  ],
-  "author": "Rohan Bhatia",
-  "license": "MIT",
   "dependencies": {
     "express": "^4.18.2"
   },
@@ -43,5 +28,6 @@
   "repository": {
     "type": "git",
     "url": "https://github.com/your-repo/your-package-name.git"
-  }
+  },
+  "type": "module"
 }

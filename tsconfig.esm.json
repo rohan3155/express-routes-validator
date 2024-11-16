@@ -1,17 +1,8 @@
 {
-  "compilerOptions": {
-    "target": "ES6",
-    "module": "ESNext",
-    "moduleResolution": "node",
-    "strict": true,
-    "esModuleInterop": true,
-    "skipLibCheck": true,
-    "outDir": "./dist/esm",
-    "declaration": true,
-    "declarationMap": true,
-    "sourceMap": true,
-    "rootDir": "./src"
-  },
-  "include": ["src/**/*.ts"],
-  "exclude": ["node_modules", "dist"]
-}
+    "extends": "./tsconfig.json",
+    "compilerOptions": {
+      "module": "ESNext",
+      "outDir": "./dist/esm",
+      "declarationDir": "./dist/types"
+    }
+  }
