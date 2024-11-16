@@ -287,7 +287,7 @@ export const isEmailUnique = async (
   value: string,
   existingEmails: string[]
 ): Promise<string | null> => {
-  if (existingEmails.includes(value)) {
+  if (existingEmails.indexOf(value) !== -1) {
     return `Invalid email: ${value}`;
   }
   return null;
@@ -554,7 +554,8 @@ export const isCountryCode: Validator = (value, key) => {
     "ZM",
     "ZW",
   ];
-  if (!countryCodes.includes(value)) {
+
+  if (countryCodes.indexOf(value) === -1) {
     return `${key} must be a valid country code (e.g. US, IN, GB)`;
   }
   return null;
