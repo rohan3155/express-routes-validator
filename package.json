@@ -1,6 +1,6 @@
 {
   "name": "express-routes-validator",
-  "version": "1.0.5",
+  "version": "1.0.3",
   "description": "A package for request validation middleware and validators",
   "main": "dist/cjs/index.js",
   "module": "dist/esm/index.js",
@@ -9,6 +9,10 @@
     ".": {
       "import": "./dist/esm/index.js",
       "require": "./dist/cjs/index.js"
+    },
+    "./validators": {
+      "import": "./dist/esm/validators.js",
+      "require": "./dist/cjs/validators.js"
     }
   },
   "scripts": {
@@ -38,6 +42,6 @@
   },
   "repository": {
     "type": "git",
-    "url": "https://github.com/rohan3155/express-routes-validator.git"
+    "url": "https://github.com/your-repo/your-package-name.git"
   }
 }
