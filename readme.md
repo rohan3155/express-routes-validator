@@ -393,38 +393,41 @@ capitalizeString(value, key);
 Here’s a simple example of how to use these validators:
 
 ```js
-const { isString, isEmail, isRequired } = require("express-routes-validator");
+import express from "express";
+import { validator } from "express-routes-validator";
 
-const schema = {
-  email: [isRequired, isEmail],
-  username: [isRequired, isString],
+const app = express();
+
+const options = {
+  "/register": {
+    username: [isRequired, minLength(3), maxLength(20)],
+    email: [isRequired, isEmail, capitalizeString],
+  },
+  "/update-profile": {
+    age: [isRequired, isNumber, minValue(18)],
+  },
+  "/search": {
+    query: [isRequired, isString, maxLength(50)],
+  },
 };
 
-const validateInput = (input) => {
-  const errors = {};
+app.use(validator(options));
 
-  for (const key in schema) {
-    const validators = schema[key];
-    for (const validator of validators) {
-      const error = validator(input[key], key);
-      if (error) {
-        errors[key] = error;
-        break;
-      }
-    }
-  }
+app.post("/register", (req, res) => {
+  res.send("Registered successfully!");
+});
 
-  return errors;
-};
+app.put("/update-profile", (req, res) => {
+  res.send("Profile updated successfully!");
+});
 
-const inputData = {
-  email: "invalid-email.com",
-  username: "", // Empty username
-};
+app.get("/search", (req, res) => {
+  res.send("Search results");
+});
 
-const validationErrors = validateInput(inputData);
-
-console.log(validationErrors); // Output errors
+app.listen(3000, () => {
+  console.log("Server running on port 3000");
+});
 ```
 
 ---
